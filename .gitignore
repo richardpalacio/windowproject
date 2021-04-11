@@ -1,0 +1,5 @@
+.svn
+.vs
+bin
+build
+WindowProject.vcxproj.user

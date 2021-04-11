@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <Boost_INCLUDE_DIR>C:\Program Files\boost\boost_1_57_0\</Boost_INCLUDE_DIR>
+    <MYSQL_CONNECTOR>C:\Program Files (x86)\MySQL\MySQL Connector C++ 1.1.5\include\</MYSQL_CONNECTOR>
+    <DirectX_2010_DIR>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\</DirectX_2010_DIR>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="Boost_INCLUDE_DIR">
+      <Value>$(Boost_INCLUDE_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="MYSQL_CONNECTOR">
+      <Value>$(MYSQL_CONNECTOR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DirectX_2010_DIR">
+      <Value>$(DirectX_2010_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
