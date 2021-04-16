@@ -24,6 +24,8 @@ uniform extern float2 gOffsetXY;
 
 uniform extern float4 gMeshColor;
 
+uniform float3 lightVecW = {5,5,0};
+
 //sampler for mesh
 sampler MeshSampler = sampler_state
 {
@@ -102,6 +104,7 @@ struct OutputVertexStruct
 	float4 posH : POSITION0; //transformed homogeneous clip space output vector
 	float2 tex0 : TEXCOORD0; //texture coords to pixel shader
 	float2 tex1 : TEXCOORD1; //texture coords of blend map
+	float3 normal : TEXCOORD2; // the normal
 };
 
 
@@ -112,20 +115,13 @@ OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL
 	//zero struct
 	OutputVertexStruct outVS = (OutputVertexStruct)0;
 
-	// transform normal vector to world space
+	// transform normal vector to world space (inverse transpose because normals can become un-orthogonal without)
 	float3 normalW = mul(float4(normalL, 1.0f), gWorldInverseTranspose).xyz;
 	// normalize the normal vector
-	normalW = normalize(normalW);
+	outVS.normal = normalize(normalW);
 
 	//transform to homogeneous clip space
 	outVS.posH = mul(float4(posL, 1.0f), gWorldViewProjection);
-
-	/**
-	lambert
-	float s = max(dot(lightVecW, n), 0.0f);
-	outVS.color.rgb = s * (diffuseMtrl * diffuseLight).rgb // multiplication of mtrl and light is component-wise multiplication
-	outVS.color.a = diffuseMtrl.a;
-	*/
 
 	//pass color as is
 	if (gIsFloor)
@@ -141,13 +137,13 @@ OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL
 		outVS.tex0 = tex0;
 		outVS.tex1 = tex0;
 	}
-
+	
 	//return output
 	return outVS;
 }
 
 //Pixel Shader
-float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1) : COLOR
+float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1, float3 normal : TEXCOORD2) : COLOR
 {
 	float3 texColor;
 	float3 groundColor;
@@ -185,7 +181,12 @@ float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1) : 
 	{
 		texColor = tex2D(BoxSampler, tex0);
 	}
-
+	
+	float s = max(dot(normalize(lightVecW), normal), 0.0f); // lambert lighting
+	float3 ambient = (texColor.rgb * 0.1f); // calculate the ambient light with material texture color
+	float3 diffuse = s * (texColor).rgb; // calculate the diffuse reflection light with material texture color
+	texColor = diffuse + ambient; // add ambient light and diffuse light together
+	
 	return float4(texColor, 1.0f);
 }
 

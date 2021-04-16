@@ -263,7 +263,7 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 			&(tempMatrix * m_matView * m_matProjection))
 		);
 		D3DXMATRIX worldInverseTranspose;
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix * m_matView * m_matProjection));
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
@@ -286,7 +286,7 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
 			&(tempMatrix * m_matView * m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix * m_matView * m_matProjection));
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
@@ -308,7 +308,7 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
 			&(tempMatrix * m_matView * m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix * m_matView * m_matProjection));
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
@@ -341,7 +341,7 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
 			&(tempMatrix * m_matView * m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix * m_matView * m_matProjection));
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
@@ -519,6 +519,67 @@ VOID Physics::CreateBoxes()
 
 	//unlock
 	HR(m_pIndexbuffer->Unlock());
+}
+
+/*
+create a skybox in local space
+*/
+VOID Physics::CreateSkyBox()
+{
+	int k = 0;
+
+	for (DWORD i = 0; i < (DWORD)m_nPlaneNumRows; i++)
+		for (DWORD j = 0; j < (DWORD)m_nPlaneNumColumns; j++)
+		{
+			LPPlaneVertexArray[k].position.x = 1.0f * (j * m_nPlaneWidthInterval);
+			LPPlaneVertexArray[k].position.y = 0;
+			LPPlaneVertexArray[k].position.z = -1.0f * (i * m_nPlaneHeightInterval);
+			LPPlaneVertexArray[k].normal = D3DXVECTOR3(0, 1, 0);
+			LPPlaneVertexArray[k].texture = D3DXVECTOR2((float)j, (float)i) / 4.0f;
+
+			k++;
+		}
+
+	k = 0;
+	for (DWORD i = 0; i < (DWORD)m_nCellRows; i++)
+	{
+		for (DWORD j = 0; j < (DWORD)m_nCellColumns; j++)
+		{
+			m_dwpPlaneIndices[k] = i * m_nPlaneNumColumns + j;
+			m_dwpPlaneIndices[k + 1] = i * m_nPlaneNumColumns + j + 1;
+			m_dwpPlaneIndices[k + 2] = (i + 1) * m_nPlaneNumColumns + j;
+
+			m_dwpPlaneIndices[k + 3] = (i + 1) * m_nPlaneNumColumns + j;
+			m_dwpPlaneIndices[k + 4] = i * m_nPlaneNumColumns + j + 1;
+			m_dwpPlaneIndices[k + 5] = (i + 1) * m_nPlaneNumColumns + j + 1;
+
+			//next quad
+			k += 6;
+		}
+	}
+
+	HR(g_pD3DGraphics->GetD3DDevice()->CreateVertexBuffer
+	(m_nPlaneNumVerts * sizeof(Vertex), D3DUSAGE_WRITEONLY, 0, D3DPOOL_MANAGED, &m_pPlaneVertexbuffer, 0));
+
+	Vertex* x = 0;
+	HR(m_pPlaneVertexbuffer->Lock(0, 0, (void**)&x, 0));
+	for (DWORD i = 0; i < (DWORD)m_nPlaneNumVerts; i++)
+	{
+		x[i] = LPPlaneVertexArray[i];
+	}
+	HR(m_pPlaneVertexbuffer->Unlock());
+
+	HR(g_pD3DGraphics->GetD3DDevice()->CreateIndexBuffer
+	(m_nFloorTriangleCount * 3 * sizeof(WORD), D3DUSAGE_WRITEONLY, D3DFMT_INDEX16,
+		D3DPOOL_MANAGED, &m_pPlaneIndexbuffer, 0));
+
+	WORD* r = 0;
+	HR(m_pPlaneIndexbuffer->Lock(0, 0, (void**)&r, 0));
+	for (DWORD i = 0; i < (DWORD)m_nFloorTriangleCount * 3; i++)
+	{
+		r[i] = (WORD)m_dwpPlaneIndices[i];
+	}
+	HR(m_pPlaneIndexbuffer->Unlock());
 }
 
 VOID Physics::OnLostDevice()

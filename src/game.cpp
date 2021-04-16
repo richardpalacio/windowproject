@@ -66,8 +66,8 @@ VOID Game::GameRun(DOUBLE deltatime)
 	m_nCurrentTime += deltatime;
 	m_nCurrentTextDelay += deltatime;
 
-	//convert back to seconds to display the FPS
-	//update fps text every second
+	// convert back to seconds to display the FPS
+	// update fps text every second
 	if (m_nCurrentTextDelay >= 1000)
 	{
 		m_nCurrentTextDelay = 0;
@@ -110,18 +110,18 @@ VOID Game::GameRun(DOUBLE deltatime)
 
 	if (g_pD3DGraphics->GetDevice())
 	{
-		//erase previous frame by clearing backbuffer
-		g_pD3DGraphics->GetDevice()->Clear( 0, 0, D3DCLEAR_TARGET
-			| D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(255, 255, 255), 1.0f, 0 );
+		// erase previous frame by clearing backbuffer
+		g_pD3DGraphics->GetDevice()->Clear(0, 0, D3DCLEAR_TARGET
+			| D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
-		//poll the keyboard
+		// poll the keyboard
 		g_pD3DGraphics->Poll();
 
 		// once this button is pressed do not process it
 		// again for 500ms
 		// need: time it was pressed
 		// the amount of time that has passed since the time it was pressed
-		//check if the user has switched cameras, add a change character delay of 500ms
+		// check if the user has switched cameras, add a change character delay of 500ms
 		if ((g_pD3DGraphics->GetKeyboardState()[DIK_TAB] & 0x80) && (m_nCurrentTime > m_nTimeUntilCharacterSelectable))
 		{
 			m_nCurrentCamera++;
@@ -134,10 +134,10 @@ VOID Game::GameRun(DOUBLE deltatime)
 			m_nTimeUntilCharacterSelectable = m_nCurrentTime + 500;
 		}
 		
-		///iterate through all entities and call their update function
+		// iterate through all entities and call their update function
 		for (UINT i = 0; i < m_pGameObjectVector.size(); i++)
 		{
-			//if the camera is the current entity call update with true
+			// if the camera is the current entity call update with true
 			if (m_nCurrentCamera == i)
 			{
 				m_pCurrentCharacter = m_pGameObjectVector.at(i);
@@ -148,20 +148,20 @@ VOID Game::GameRun(DOUBLE deltatime)
 			m_pGameObjectVector.at(i)->Update(deltatime);
 		}
 		
-		//update the world
+		// update the world
 		m_physicsWorldObject.Update(deltatime);
-		
-		//begin DirectX drawing
+
+		// begin DirectX drawing
 		g_pD3DGraphics->GetDevice()->BeginScene();
 
-		//draw the world
+		// draw the world
 		m_physicsWorldObject.Draw(m_pCurrentCharacter->GetVisualSystem()->GetViewMatrix(), m_pCurrentCharacter->GetVisualSystem()->GetProjectionMatrix());
 
-		//draw the entity being followed by the camera
+		// draw the entity being followed by the camera
 		m_pCurrentCharacter->Draw();
 		currentPosition = m_pCurrentCharacter->GetPosition();
 
-		//draw all the other entities
+		// draw all the other entities
 		for (vector<Entity*>::iterator iter = m_pGameObjectVector.begin(); iter != m_pGameObjectVector.end(); iter++)
 		{
 			//pass in the current camera to the other entities
@@ -186,7 +186,7 @@ VOID Game::GameRun(DOUBLE deltatime)
 
 		//draw stats text
 		g_pD3DGraphics->GetFont()->DrawText(0, GetStats(), -1,
-			m_pRFormatRect, 0, D3DCOLOR_XRGB(0, 0, 0));
+			m_pRFormatRect, 0, D3DCOLOR_XRGB(255, 255, 255));
 
 		//end DirectX drawing
 		g_pD3DGraphics->GetDevice()->EndScene();

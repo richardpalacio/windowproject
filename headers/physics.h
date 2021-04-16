@@ -26,6 +26,7 @@ public:
 	VOID CreateTerrain();
 	//create boxes
 	VOID CreateBoxes();
+	VOID CreateSkyBox(); // create sphere
 protected:
 	DWORD m_nBoxNumVerts;
 	DWORD m_nTriangleCount;
