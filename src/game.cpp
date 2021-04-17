@@ -38,11 +38,11 @@ VOID Game::GameInitialize()
 	}
 	
 	entityObject = new Zombie();
-	entityObject->SetPosition(distribution(generator), 0, distribution(generator));
+	entityObject->SetPosition(0, 0, 10);
 	m_pGameObjectVector.push_back(entityObject);
 	
-	m_pCurrentCharacter = m_pGameObjectVector.at(0);
-	m_nCurrentCamera = 0;
+	m_pCurrentCharacter = m_pGameObjectVector.back();
+	m_nCurrentCamera = m_pGameObjectVector.size() - 1;
 }
 
 /*
@@ -173,9 +173,10 @@ VOID Game::GameRun(DOUBLE deltatime)
 				
 				D3DXVec3TransformCoord(&transFormedVec, &tempVec, &tempMatrix);
 
-				if (transFormedVec.x / c < 1.0f && transFormedVec.x / c > -1.0f
-					&& transFormedVec.y / d < 1.0f && transFormedVec.y / d > -1.0f
-					&& transFormedVec.z >= nearPlane && transFormedVec.z <= farPlane){
+				// clip in homogenous clip space
+				if (transFormedVec.x < c && transFormedVec.x > -c
+					&& transFormedVec.y < d && transFormedVec.y > -d
+					&& transFormedVec.z >= nearPlane && transFormedVec.z <= farPlane) {
 					(*iter)->Draw(m_pCurrentCharacter->GetVisualSystem());
 				}
 			}

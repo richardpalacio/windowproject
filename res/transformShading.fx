@@ -6,6 +6,7 @@ Transformations and device settings
 //world/view/projection matrix
 //global shader variable
 //effect parameter
+uniform extern float4x4 gWorld;
 uniform extern float4x4 gWorldViewProjection;
 uniform extern float4x4 gWorldInverseTranspose;
 
@@ -21,10 +22,15 @@ uniform extern bool gIsMesh;
 uniform extern bool gIsBoundingBox;
 
 uniform extern float2 gOffsetXY;
-
 uniform extern float4 gMeshColor;
+uniform extern float3 gLightVecW;
+uniform extern float3 gEyeVecW;
 
-uniform float3 lightVecW = {5,5,0};
+uniform float3 directionalLightColor = float3(0.5f, 0.5f, 0.5f); // directional light color
+uniform float3 ambientLightColor = float3(0.1f, 0.1f, 0.1f); // ambient light color
+uniform float3 specularLightColor = float3(1.0f, 1.0f, 1.0f); // specular light color
+
+uniform float specPower = 256; // specular power factor
 
 //sampler for mesh
 sampler MeshSampler = sampler_state
@@ -104,7 +110,8 @@ struct OutputVertexStruct
 	float4 posH : POSITION0; //transformed homogeneous clip space output vector
 	float2 tex0 : TEXCOORD0; //texture coords to pixel shader
 	float2 tex1 : TEXCOORD1; //texture coords of blend map
-	float3 normal : TEXCOORD2; // the normal
+	float3 normal : TEXCOORD2; // the normal in world space
+    float3 toEye : TEXCOORD3; // the vector from the vertex to the eye in world space
 };
 
 
@@ -115,6 +122,10 @@ OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL
 	//zero struct
 	OutputVertexStruct outVS = (OutputVertexStruct)0;
 
+	// store the world space position of the vertex
+    float3 posW = mul(float4(posL, 1.0f), gWorld);
+    outVS.toEye = normalize(gEyeVecW - posW);
+	
 	// transform normal vector to world space (inverse transpose because normals can become un-orthogonal without)
 	float3 normalW = mul(float4(normalL, 1.0f), gWorldInverseTranspose).xyz;
 	// normalize the normal vector
@@ -143,7 +154,7 @@ OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL
 }
 
 //Pixel Shader
-float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1, float3 normal : TEXCOORD2) : COLOR
+float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1, float3 normal : TEXCOORD2, float3 toEye : TEXCOORD3) : COLOR
 {
 	float3 texColor;
 	float3 groundColor;
@@ -182,10 +193,20 @@ float4 transformPixelShader(float2 tex0 : TEXCOORD0, float2 tex1 : TEXCOORD1, fl
 		texColor = tex2D(BoxSampler, tex0);
 	}
 	
-	float s = max(dot(normalize(lightVecW), normal), 0.0f); // lambert lighting
-	float3 ambient = (texColor.rgb * 0.1f); // calculate the ambient light with material texture color
-	float3 diffuse = s * (texColor).rgb; // calculate the diffuse reflection light with material texture color
-	texColor = diffuse + ambient; // add ambient light and diffuse light together
+    normal = normalize(normal); // interpolated normals can become un-normalized
+	
+	// specular
+    float3 specularReflVec = reflect(-gLightVecW, normal); // specular reflection vector
+    float intensitySRL = pow(max(dot(toEye, specularReflVec), 0.0f), specPower); // intensity of the reflected specular light scalar
+	
+	// diffuse
+    float intensityDRL = max(dot(normalize(gLightVecW), normal), 0.0f); // lambert, intensity of the reflected diffuse light scalar
+	
+    float3 ambient = (texColor.rgb * ambientLightColor); // ambient light with material texture color
+    float3 diffuse = (intensityDRL * directionalLightColor) * (texColor).rgb; // the diffuse reflection light with material texture color
+    float3 specular = (intensitySRL * specularLightColor) * (texColor).rgb; // specular reflected light
+    //texColor = specular + diffuse + ambient; // add ambient, diffuse, and specular light together
+    texColor = diffuse + ambient; // add ambient, diffuse, and specular light together
 	
 	return float4(texColor, 1.0f);
 }

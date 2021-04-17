@@ -604,25 +604,25 @@ VOID D3DGraphics::SetupFX()
 	get handles to variables defined in the FX file
 	*/
 	
-	//get handle to world/view/projection variable
+	// fx get handle to world/view/projection variable
 	m_hWorldViewProjection = m_hFX->GetParameterByName(0, "gWorldViewProjection");
 	if (!m_hWorldViewProjection)
 	{
-		MessageBox(0, _TEXT("Invalid Parameter name gWVP"), 0, 0);
+		MessageBox(0, _TEXT("Invalid Parameter name gWorldViewProjection"), 0, 0);
 		Release();
 		exit(0);
 	}
 	
-	//get handle to the world inverse transpose matrix for transforming vertex normals
+	// fx get handle to the world inverse transpose matrix for transforming vertex normals
 	m_hWorldInverseTranspose = m_hFX->GetParameterByName(0, "gWorldInverseTranspose");
 	if (!m_hWorldInverseTranspose)
 	{
-		MessageBox(0, _TEXT("Invalid Parameter name gWVP"), 0, 0);
+		MessageBox(0, _TEXT("Invalid Parameter name gWorldInverseTranspose"), 0, 0);
 		Release();
 		exit(0);
 	}
 	
-	//get handle to mutable selector in FX file
+	// fx get handle to mutable selector in FX file
 	m_hChooser = m_hFX->GetParameterByName(0, "gIsFloor");
 	if (!m_hChooser)
 	{
@@ -631,7 +631,7 @@ VOID D3DGraphics::SetupFX()
 		exit(0);
 	}
 	
-	//get handle to offset
+	// fx get handle to offset
 	m_hOffsetXY = m_hFX->GetParameterByName(0, "gOffsetXY");
 	if (!m_hOffsetXY)
 	{
@@ -640,8 +640,8 @@ VOID D3DGraphics::SetupFX()
 		exit(0);
 	}
 	
-	//get handle to mesh
-	//get handle to mutable selector in FX file
+	// fx get handle to mesh
+	// fx get handle to mutable selector in FX file
 	m_hIsMesh = m_hFX->GetParameterByName(0, "gIsMesh");
 	if (!m_hIsMesh)
 	{
@@ -650,8 +650,8 @@ VOID D3DGraphics::SetupFX()
 		exit(0);
 	}
 
-	//get handle to the bounding box boolean
-	//get handle to mutable selector in FX file
+	// fx get handle to the bounding box boolean
+	// fx get handle to mutable selector in FX file
 	m_hIsBoundingBox = m_hFX->GetParameterByName(0, "gIsBoundingBox");
 	if (!m_hIsBoundingBox)
 	{

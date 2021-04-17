@@ -64,6 +64,7 @@ protected:
 	D3DXHANDLE m_hBlendTex;
 	D3DXHANDLE m_hMeshCol;
 	D3DXHANDLE m_hMeshTex;
+	D3DXHANDLE m_hLightVecW; // sun handle
 	
 	//texture pointers
 	IDirect3DTexture9 *m_pBoxTex;

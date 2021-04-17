@@ -168,6 +168,16 @@ VOID Physics::Initialize()
 		MessageBox(0, _TEXT("Invalid Parameter name gMeshTex"), 0, 0);
 		exit(0);
 	}
+
+	// fx get sun vector
+	m_hLightVecW = g_pD3DGraphics->GetFXInterface()->GetParameterByName(0, "gLightVecW");
+	if (!m_hLightVecW)
+	{
+		MessageBox(0, _TEXT("Invalid Parameter name gLightVecW"), 0, 0);
+		exit(0);
+	}
+
+	HR(g_pD3DGraphics->GetFXInterface()->SetValue(m_hLightVecW, &D3DXVECTOR3(0, 1, 30), sizeof(D3DXVECTOR3)));
 }
 VOID Physics::Update(DOUBLE deltaTime)
 {

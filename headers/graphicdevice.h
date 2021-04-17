@@ -118,8 +118,8 @@ public:
 	D3DXHANDLE& GetIsMeshHandle() {return m_hIsMesh;}
 	D3DXHANDLE& GetIsBoundingBoxHandle() { return m_hIsBoundingBox; }
 	D3DXHANDLE& GetOffsetHandle() {return m_hOffsetXY;}
-	D3DXHANDLE& GetWorldViewProjectionHandle() {return m_hWorldViewProjection;}
-	D3DXHANDLE& GetWorldInverseTransposeHandler() {return m_hWorldInverseTranspose;}
+	D3DXHANDLE& GetWorldViewProjectionHandle() {return m_hWorldViewProjection;} // world - view - projection space transform matrix
+	D3DXHANDLE& GetWorldInverseTransposeHandler() {return m_hWorldInverseTranspose;} // world inverser transpose transform matrix
 	LPDIRECT3DDEVICE9 GetD3DDevice() {return m_lpD3dDev;}
 	LPDIRECT3DVERTEXDECLARATION9 GetD3DVertexDecl() {return m_lpVertexDeclaration;}
 	D3DXMATRIX& GetWorldMatrix() {return m_matWorld;}
