@@ -131,7 +131,6 @@ sampler BlendSampler = sampler_state
 	AddressV = WRAP;
 };
 
-
 // vertex Shader
 OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL : NORMAL0, float2 tex0 : TEXCOORD0)
 {
@@ -139,7 +138,7 @@ OutputVertexStruct transformVertexShader(float3 posL : POSITION0, float3 normalL
 	OutputVertexStruct outVS = (OutputVertexStruct)0;
 
 	// store the world space position of the vertex
-    float3 posW = mul(float4(posL, 1.0f), gWorld);
+    float3 posW = mul(float4(posL, 1.0f), gWorld).xyz;
     
 	// vector from vertex to eye
     outVS.toEye = normalize(gEyeVecW - posW);
@@ -187,15 +186,15 @@ float4 transformPixelShader(OutputVertexStruct input) : COLOR
 	
 	if (gIsMesh)
 	{
-        texColor = tex2D(MeshSampler, input.tex1);
-		texColor += gMeshColor; // if there was no texture then use mesh color
-	}
+        texColor = tex2D(MeshSampler, input.tex1).xyz;
+        texColor += gMeshColor.xyz; // if there was no texture then use mesh color
+    }
 	else if (gIsFloor)
 	{
-        float3 groundColor = tex2D(GroundSampler, input.tex0);
-        float3 stoneColor = tex2D(StoneSampler, input.tex0);
-        float3 grassColor = tex2D(GrassSampler, input.tex0);
-        float3 blendColor = tex2D(BlendSampler, input.tex1);
+        float3 groundColor = tex2D(GroundSampler, input.tex0).xyz;
+        float3 stoneColor = tex2D(StoneSampler, input.tex0).xyz;
+        float3 grassColor = tex2D(GrassSampler, input.tex0).xyz;
+        float3 blendColor = tex2D(BlendSampler, input.tex1).xyz;
 
         float blendRGBSum = blendColor.r + blendColor.g + blendColor.b;
         float scaleR = blendColor.r / blendRGBSum;
@@ -210,7 +209,7 @@ float4 transformPixelShader(OutputVertexStruct input) : COLOR
 	}
 	else
 	{
-        texColor = tex2D(BoxSampler, input.tex0);
+        texColor = tex2D(BoxSampler, input.tex0).xyz;
     }
 	
     input.normal = normalize(input.normal); // interpolated normals can become un-normalized
