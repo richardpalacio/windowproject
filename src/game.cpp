@@ -38,7 +38,7 @@ VOID Game::GameInitialize()
 	}
 	
 	entityObject = new Zombie();
-	entityObject->SetPosition(0, 0, 10);
+	entityObject->SetPosition(0, 0, -10);
 	m_pGameObjectVector.push_back(entityObject);
 	
 	m_pCurrentCharacter = m_pGameObjectVector.back();
@@ -154,7 +154,7 @@ VOID Game::GameRun(DOUBLE deltatime)
 		// begin DirectX drawing
 		g_pD3DGraphics->GetDevice()->BeginScene();
 
-		// draw the world
+		// draw the world where the camera is the current character
 		m_physicsWorldObject.Draw(m_pCurrentCharacter->GetVisualSystem()->GetViewMatrix(), m_pCurrentCharacter->GetVisualSystem()->GetProjectionMatrix());
 
 		// draw the entity being followed by the camera
@@ -177,6 +177,7 @@ VOID Game::GameRun(DOUBLE deltatime)
 				if (transFormedVec.x < c && transFormedVec.x > -c
 					&& transFormedVec.y < d && transFormedVec.y > -d
 					&& transFormedVec.z >= nearPlane && transFormedVec.z <= farPlane) {
+					// draw the other entites as seen by the current character
 					(*iter)->Draw(m_pCurrentCharacter->GetVisualSystem());
 				}
 			}

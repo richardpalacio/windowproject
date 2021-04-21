@@ -32,7 +32,7 @@ Physics::Physics()
 	LPPlaneVertexArray = new Vertex[m_nPlaneNumVerts];
 	m_dwpPlaneIndices = new DWORD[m_nFloorTriangleCount * 3];
 	
-	D3DXMatrixIdentity(&m_matTransformMatrix);
+	D3DXMatrixIdentity(&m_matWorldMatrix);
 	D3DXMatrixIdentity(&m_matTranslationMatrix);
 	D3DXMatrixIdentity(&m_matRotationMatrix);
 	D3DXMatrixIdentity(&m_matScalingMatrix);
@@ -169,15 +169,13 @@ VOID Physics::Initialize()
 		exit(0);
 	}
 
-	// fx get sun vector
-	m_hLightVecW = g_pD3DGraphics->GetFXInterface()->GetParameterByName(0, "gLightVecW");
-	if (!m_hLightVecW)
+	// fx get world matrix
+	m_hWorld = g_pD3DGraphics->GetFXInterface()->GetParameterByName(0, "gWorld");
+	if (!m_hWorld)
 	{
-		MessageBox(0, _TEXT("Invalid Parameter name gLightVecW"), 0, 0);
+		MessageBox(0, _TEXT("Invalid Parameter name gWorld"), 0, 0);
 		exit(0);
 	}
-
-	HR(g_pD3DGraphics->GetFXInterface()->SetValue(m_hLightVecW, &D3DXVECTOR3(0, 1, 30), sizeof(D3DXVECTOR3)));
 }
 VOID Physics::Update(DOUBLE deltaTime)
 {
@@ -197,8 +195,8 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 	BOOL isBoundingBox = FALSE;
 	FLOAT planeWidth;
 	FLOAT planeHeight;
-	D3DXMATRIX tempMatrix;
 	unsigned int numpasses = 0;
+	D3DXMATRIX worldInverseTranspose;
 
 	// save the old FX values
 	HR(g_pD3DGraphics->GetFXInterface()->GetValue(g_pD3DGraphics->GetChooserHandle(), &isFloorOld, sizeof(BOOL)));
@@ -264,21 +262,29 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 		m_matModelSpaceMatrix = m_matTranslationMatrix;
 		// position the model in world space
 		D3DXMatrixTranslation(&m_matTranslationMatrix, 0, 0, 0);
-		tempMatrix = g_pD3DGraphics->GetWorldMatrix() * m_matTranslationMatrix;
 		// concatenate model and world matrices
-		tempMatrix = m_matModelSpaceMatrix * tempMatrix;
-		// set world/view/projection matrix in fx file
+		m_matWorldMatrix = m_matModelSpaceMatrix * m_matTranslationMatrix;
+		
+		/*
+		fx set the world, world-view-project, and world-inverse-transpose matrices
+		*/
+		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
+			m_hWorld,
+			&(m_matWorldMatrix))
+		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
-			&(tempMatrix * m_matView * m_matProjection))
+			&(m_matWorldMatrix * m_matView * m_matProjection))
 		);
-		D3DXMATRIX worldInverseTranspose;
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
+		
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(m_matWorldMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
 			&worldInverseTranspose)
 		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->CommitChanges());
 		HR(g_pD3DGraphics->GetD3DDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, m_nBoxNumVerts, 0, m_nTriangleCount));
 
@@ -288,20 +294,29 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 		m_matModelSpaceMatrix = m_matTranslationMatrix;
 		// position the model in world space
 		D3DXMatrixTranslation(&m_matTranslationMatrix, 0, 0, 5);
-		tempMatrix = g_pD3DGraphics->GetWorldMatrix() * m_matTranslationMatrix;
 		// concatenate model and world matrices
-		tempMatrix = m_matModelSpaceMatrix * tempMatrix;
-		// set world/view/projection matrix in fx file
+		m_matWorldMatrix = m_matModelSpaceMatrix * m_matTranslationMatrix;
+		
+		/*
+		fx set the world, world-view-project, and world-inverse-transpose matrices
+		*/
+		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
+			m_hWorld,
+			&(m_matWorldMatrix))
+		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
-			&(tempMatrix * m_matView * m_matProjection))
+			&(m_matWorldMatrix * m_matView * m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
+
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(m_matWorldMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
 			&worldInverseTranspose)
 		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->CommitChanges());
 		HR(g_pD3DGraphics->GetD3DDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, m_nBoxNumVerts, 0, m_nTriangleCount));
 
@@ -311,19 +326,29 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 		m_matModelSpaceMatrix = m_matTranslationMatrix;
 		// position the model in world space
 		D3DXMatrixTranslation(&m_matTranslationMatrix, -10, 0, 5);
-		tempMatrix = g_pD3DGraphics->GetWorldMatrix() * m_matTranslationMatrix;
 		// concatenate model and world matrices
-		tempMatrix = m_matModelSpaceMatrix * tempMatrix;
+		m_matWorldMatrix = m_matModelSpaceMatrix * m_matTranslationMatrix;
+		
+		/*
+		fx set the world, world-view-project, and world-inverse-transpose matrices
+		*/
+		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
+			m_hWorld,
+			&(m_matWorldMatrix))
+		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
-			&(tempMatrix * m_matView * m_matProjection))
+			&(m_matWorldMatrix * m_matView * m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
+
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(m_matWorldMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
 			&worldInverseTranspose)
 		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->CommitChanges());
 		HR(g_pD3DGraphics->GetD3DDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, m_nBoxNumVerts, 0, m_nTriangleCount));
 
@@ -344,19 +369,29 @@ VOID Physics::Draw(D3DXMATRIX m_matView, D3DXMATRIX m_matProjection)
 		planeWidth = m_nPlaneWidthInterval * m_nCellRows * m_matScalingMatrix._11;
 		planeHeight = m_nPlaneHeightInterval * m_nCellColumns * m_matScalingMatrix._33;
 		D3DXMatrixTranslation(&m_matTranslationMatrix, -1 * (planeWidth / 2.0f), 0, (planeHeight / 2.0f));
-		tempMatrix = g_pD3DGraphics->GetWorldMatrix() * m_matTranslationMatrix;
 		// concatenate model and world matrices
-		tempMatrix = m_matModelSpaceMatrix * tempMatrix;
+		m_matWorldMatrix = m_matModelSpaceMatrix * m_matTranslationMatrix;
+		
+		/*
+		fx set the world, world-view-project, and world-inverse-transpose matrices
+		*/
+		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
+			m_hWorld,
+			&(m_matWorldMatrix))
+		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldViewProjectionHandle(),
-			&(tempMatrix * m_matView * m_matProjection))
+			&(m_matWorldMatrix* m_matView* m_matProjection))
 		);
-		D3DXMatrixInverse(&worldInverseTranspose, 0, &(tempMatrix));
+
+		D3DXMatrixInverse(&worldInverseTranspose, 0, &(m_matWorldMatrix));
 		D3DXMatrixTranspose(&worldInverseTranspose, &worldInverseTranspose);
 		HR(g_pD3DGraphics->GetFXInterface()->SetMatrix(
 			g_pD3DGraphics->GetWorldInverseTransposeHandler(),
 			&worldInverseTranspose)
 		);
+
 		HR(g_pD3DGraphics->GetFXInterface()->CommitChanges());
 		HR(g_pD3DGraphics->GetD3DDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, m_nPlaneNumVerts, 0, m_nFloorTriangleCount));
 

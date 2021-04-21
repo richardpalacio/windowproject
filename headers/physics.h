@@ -56,7 +56,7 @@ protected:
 	IDirect3DVertexBuffer9 *m_pVertexbuffer;
 	IDirect3DIndexBuffer9 *m_pIndexbuffer;
 	
-	//texture handles
+	// fx handles
 	D3DXHANDLE m_hBoxTex;
 	D3DXHANDLE m_hGroundTex;
 	D3DXHANDLE m_hGrassTex;
@@ -64,7 +64,7 @@ protected:
 	D3DXHANDLE m_hBlendTex;
 	D3DXHANDLE m_hMeshCol;
 	D3DXHANDLE m_hMeshTex;
-	D3DXHANDLE m_hLightVecW; // sun handle
+	D3DXHANDLE m_hWorld; // world handle
 	
 	//texture pointers
 	IDirect3DTexture9 *m_pBoxTex;
@@ -80,6 +80,6 @@ protected:
 	D3DXMATRIX m_matTranslationMatrix;
 	D3DXMATRIX m_matScalingMatrix;
 	D3DXMATRIX m_matRotationMatrix;
-	D3DXMATRIX m_matTransformMatrix;
+	D3DXMATRIX m_matWorldMatrix;
 };
 

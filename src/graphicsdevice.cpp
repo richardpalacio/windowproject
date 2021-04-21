@@ -575,8 +575,8 @@ VOID D3DGraphics::SetupFX()
 		exit(0);
 	}
 	
-	// Check for pixel shader version 2.0 support.
-	if(caps.PixelShaderVersion < D3DPS_VERSION(2, 0))
+	// Check for pixel shader version 3.0 support.
+	if(caps.PixelShaderVersion < D3DPS_VERSION(3, 0))
 	{
 		Release();
 		exit(0);
